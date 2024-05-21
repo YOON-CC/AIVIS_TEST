@@ -1,11 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ReactNode, useEffect, useState } from "react";
+
+interface Project {
+  numberOfImages: ReactNode;
+  id: number;
+  name: string;
+  ontologyName: string;
+  created: string;
+  updated: string;
+  status: string;
+}
 
 export default function ProjectList() {
   const [token, setToken] = useState<string | null>(null);
   const [shortTermToken, setShortTermToken] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [showDetails, setShowDetails] = useState<boolean>(false); // 세부 정보를 표시할지 여부를 나타내는 상태
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
@@ -37,7 +50,8 @@ export default function ProjectList() {
 
           if (response.ok) {
             const data = await response.json();
-            setData(data);
+            setData(data.collection);
+            console.log(data.collection[0].name);
             console.log(data);
           } else {
             console.error("Failed to fetch data");
@@ -51,25 +65,145 @@ export default function ProjectList() {
     fetchData();
   }, [token]);
 
+  const handleProjectClick = (project: Project) => {
+    setSelectedProject(project);
+  };
+  const closeModal = () => {
+    setSelectedProject(null); // 선택된 프로젝트 초기화
+  };
+
+  const projectsPerPage = 10; // 페이지당 프로젝트 개수
+  const [currentPage, setCurrentPage] = useState<number>(1); // 현재 페이지를 추적하는 상태
+
+  const lastProjectIndex = currentPage * projectsPerPage;
+  const firstProjectIndex = lastProjectIndex - projectsPerPage;
+  const currentProjects = data.slice(firstProjectIndex, lastProjectIndex);
+
+  const totalPages = Math.ceil(data.length / projectsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <main>
-      <div>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
         <h1>Project List</h1>
+        <h1>정렬</h1>
+        <h1>프로젝트 생성</h1>
       </div>
       <div>
         <div
           style={{
             display: "flex",
             width: "100%",
-            justifyContent: "space-between",
+            justifyContent: "space-evenly",
+            background: "navy",
+            color: "white",
+            borderRadius: "5px",
           }}
         >
+          <p>detailBtn</p>
           <p>name</p>
           <p>number of images</p>
           <p>created</p>
+          <p>상세이동</p>
         </div>
-        {/* {data ? <pre>{JSON.stringify(data, null, 2)}</pre> : <p>Loading...</p>} */}
+        {data.length > 0 ? (
+          <div>
+            {currentProjects.map((project) => (
+              <div
+                key={project.id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-evenly",
+                  cursor: "pointer",
+                  background:
+                    selectedProject?.id === project.id ? "#e0e0e0" : "white",
+                }}
+              >
+                <h4 onClick={() => handleProjectClick(project)}>
+                  ▶상세입니다.
+                </h4>
+                <h4>{project.name}</h4>
+                <h4>{project.numberOfImages}</h4>
+                <h4>{new Date(Number(project.created)).toLocaleString()}</h4>
+                <Link href={`/project/${project.id}`} key={project.id}>
+                  <div
+                    style={{
+                      //   background: "black",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "100%",
+                    }}
+                  >
+                    상세이동
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>Loading...</p>
+        )}
       </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: "40px",
+        }}
+      >
+        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+          (page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              style={{
+                margin: "5px",
+                background: currentPage === page ? "navy" : "white",
+                color: currentPage === page ? "white" : "black",
+              }}
+            >
+              {page}
+            </button>
+          )
+        )}
+      </div>
+      {selectedProject && (
+        <div
+          style={{
+            background: "black",
+            marginTop: "20px",
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            borderRadius: "10px",
+            color: "white",
+            padding: "20px",
+          }}
+        >
+          <span
+            className="close"
+            onClick={closeModal}
+            style={{ fontSize: "30px", right: "-0" }}
+          >
+            &times;
+          </span>{" "}
+          <p>
+            <strong>Name:</strong> {selectedProject.id}
+          </p>
+          <p>
+            <strong>Ontology Name:</strong> {selectedProject.ontologyName}
+          </p>
+          <p>
+            <strong>Created:</strong>{" "}
+            {new Date(Number(selectedProject.created)).toLocaleString()}
+          </p>
+        </div>
+      )}
     </main>
   );
 }
