@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { ReactNode, useEffect, useState } from "react";
 
 interface Project {
@@ -86,8 +87,10 @@ export default function ProjectList() {
 
   return (
     <main>
-      <div>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
         <h1>Project List</h1>
+        <h1>정렬</h1>
+        <h1>프로젝트 생성</h1>
       </div>
       <div>
         <div
@@ -104,6 +107,7 @@ export default function ProjectList() {
           <p>name</p>
           <p>number of images</p>
           <p>created</p>
+          <p>상세이동</p>
         </div>
         {data.length > 0 ? (
           <div>
@@ -124,6 +128,19 @@ export default function ProjectList() {
                 <h4>{project.name}</h4>
                 <h4>{project.numberOfImages}</h4>
                 <h4>{new Date(Number(project.created)).toLocaleString()}</h4>
+                <Link href={`/project/${project.id}`} key={project.id}>
+                  <div
+                    style={{
+                      //   background: "black",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      height: "100%",
+                    }}
+                  >
+                    상세이동
+                  </div>
+                </Link>
               </div>
             ))}
           </div>
