@@ -71,6 +71,19 @@ export default function ProjectList() {
     setSelectedProject(null); // 선택된 프로젝트 초기화
   };
 
+  const projectsPerPage = 10; // 페이지당 프로젝트 개수
+  const [currentPage, setCurrentPage] = useState<number>(1); // 현재 페이지를 추적하는 상태
+
+  const lastProjectIndex = currentPage * projectsPerPage;
+  const firstProjectIndex = lastProjectIndex - projectsPerPage;
+  const currentProjects = data.slice(firstProjectIndex, lastProjectIndex);
+
+  const totalPages = Math.ceil(data.length / projectsPerPage);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <main>
       <div>
@@ -87,14 +100,14 @@ export default function ProjectList() {
             borderRadius: "5px",
           }}
         >
-          <p> </p>
+          <p>detailBtn</p>
           <p>name</p>
           <p>number of images</p>
           <p>created</p>
         </div>
         {data.length > 0 ? (
           <div>
-            {data.map((project) => (
+            {currentProjects.map((project) => (
               <div
                 key={project.id}
                 style={{
@@ -116,6 +129,29 @@ export default function ProjectList() {
           </div>
         ) : (
           <p>Loading...</p>
+        )}
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: "40px",
+        }}
+      >
+        {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+          (page) => (
+            <button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              style={{
+                margin: "5px",
+                background: currentPage === page ? "navy" : "white",
+                color: currentPage === page ? "white" : "black",
+              }}
+            >
+              {page}
+            </button>
+          )
         )}
       </div>
       {selectedProject && (
